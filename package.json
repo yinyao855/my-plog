@@ -6,12 +6,18 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:init": "node scripts/db-init.mjs",
+    "password:hash": "node --experimental-strip-types scripts/hash-password.mjs",
+    "test:auth": "node --experimental-strip-types --test tests/auth.test.mjs"
   },
   "dependencies": {
+    "mysql2": "^3.24.4",
     "next": "16.3.5",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "server-only": "^0.0.1",
+    "sharp": "^0.35.4"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
