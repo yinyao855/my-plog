@@ -29,8 +29,8 @@ function deriveKey(password: string, salt: Buffer): Promise<Buffer> {
 }
 
 export async function hashPassword(password: string): Promise<string> {
-  if (password.length < 12 || Buffer.byteLength(password, "utf8") > 1024) {
-    throw new Error("密码至少需要 12 个字符，且不能超过 1024 字节。");
+  if (password.length < 6 || Buffer.byteLength(password, "utf8") > 1024) {
+    throw new Error("密码至少需要 6 个字符，且不能超过 1024 字节。");
   }
   const salt = randomBytes(16);
   const key = await deriveKey(password, salt);

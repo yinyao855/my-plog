@@ -35,7 +35,7 @@ async function readPassword(prompt) {
 }
 
 try {
-  const password = await readPassword("设置管理员密码（至少 12 个字符，输入不会显示）：");
+  const password = await readPassword("设置管理员密码（至少 6 个字符，输入不会显示）：");
   const confirmation = await readPassword("再次输入密码：");
   if (password !== confirmation) throw new Error("两次输入的密码不一致。");
   const passwordHash = await hashPassword(password);

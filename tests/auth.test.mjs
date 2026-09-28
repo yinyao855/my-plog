@@ -18,7 +18,8 @@ test("password hashing uses a unique salt and rejects wrong or malformed hashes"
   assert.equal(await verifyPassword("wrong-password", first), false);
   assert.equal(await verifyPassword(password, first.replace("32768", "2147483648")), false);
   assert.equal(await verifyPassword("a".repeat(1025), first), false);
-  await assert.rejects(hashPassword("short"));
+  assert.equal(await verifyPassword("123456", await hashPassword("123456")), true);
+  await assert.rejects(hashPassword("12345"));
 });
 
 test("session expires exactly after eight hours and rejects tampering", () => {

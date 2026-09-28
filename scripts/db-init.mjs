@@ -11,7 +11,11 @@ if (!process.env.DATABASE_URL?.trim()) {
 } else {
   let connection;
   try {
-    connection = await mysql.createConnection({ uri: process.env.DATABASE_URL, multipleStatements: false });
+    const caPath = process.env.DATABASE_SSL_CA?.trim();
+    const ssl = process.env.DATABASE_SSL === "true"
+      ? { rejectUnauthorized: true, ...(caPath ? { ca: await readFile(caPath, "utf8") } : {}) }
+      : undefined;
+    connection = await mysql.createConnection({ uri: process.env.DATABASE_URL, multipleStatements: false, ssl });
     const [columns] = await connection.execute(
       "SELECT DATA_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'albums' AND COLUMN_NAME = 'id'",
     );

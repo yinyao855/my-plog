@@ -21,6 +21,8 @@ pnpm password:hash
 
 最后一条命令会交互式生成 `ADMIN_PASSWORD_HASH` 与 `SESSION_SECRET`。将输出复制到 `.env.local`，同时设置一个非空的 `ADMIN_USERNAME`。不要把 `.env.local` 提交到 Git。
 
+管理员密码最少为 6 个字符。即使是个人站点，也建议使用更长且不与其他服务重复的密码。
+
 创建空数据库并初始化表结构：
 
 ```bash
@@ -42,9 +44,22 @@ pnpm dev
 | `SESSION_SECRET` | 签名会话的随机密钥，至少 32 字节 |
 | `APP_URL` | 部署后的完整站点地址，用于校验所有写请求来源 |
 | `DATABASE_URL` | MySQL 连接字符串 |
+| `DATABASE_SSL` | 远程数据库是否启用 TLS，远程连接建议设为 `true` |
+| `DATABASE_SSL_CA` | 可选，数据库服务商提供的 CA 证书绝对路径 |
 | `UPLOAD_DIR` | 照片存储目录，必须位于 `public/` 外 |
 
 登录会话使用签名的 `HttpOnly` Cookie，有效期八小时。改动密码哈希或 `SESSION_SECRET` 会立即使已登录会话失效。登录接口有进程内限流；在多实例部署时，请在反向代理或 Redis 层追加共享限流。
+
+## 连接远程 MySQL
+
+可以直接连接服务器或云数据库，把 `DATABASE_URL` 中的主机改为远程地址即可：
+
+```dotenv
+DATABASE_URL="mysql://lumen:经过URL编码的密码@db.example.com:3306/lumen"
+DATABASE_SSL="true"
+```
+
+用户名或密码中的 `@`、`:`、`/`、`#` 等字符必须进行 URL 编码。远程 MySQL 需要允许应用服务器访问 3306 端口，并给 `lumen` 用户授予目标数据库的最小读写权限；不要将数据库端口向整个互联网开放。云数据库要求自定义 CA 时，下载服务商的 CA 文件并配置 `DATABASE_SSL_CA`。运行 `pnpm db:init` 的机器也必须能访问该远程数据库。
 
 ## 数据与照片
 
