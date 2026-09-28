@@ -49,7 +49,7 @@ export async function createAlbum(input: { title: string; description: string; v
   const visibility = input.visibility === "PRIVATE" ? "PRIVATE" : input.visibility === "PUBLIC" ? "PUBLIC" : null;
   if (!visibility) throw new HttpError(400, "相册可见范围无效。");
   const id = randomUUID();
-  await getDatabase().execute("INSERT INTO albums (id, title, description, visibility) VALUES (?, ?, ?, ?)", [id, title, description, visibility]);
+  await getDatabase().query("INSERT INTO albums (id, title, description, visibility) VALUES (?, ?, ?, ?)", [id, title, description, visibility]);
   return (await getAlbum(id, true))!;
 }
 
@@ -58,13 +58,13 @@ export async function updateAlbum(id: string, input: { title: string; descriptio
   if (!title || title.length > 120 || description.length > 2000) throw new HttpError(400, "请填写 1–120 字的相册名称和不超过 2000 字的介绍。");
   const visibility = input.visibility === "PRIVATE" ? "PRIVATE" : input.visibility === "PUBLIC" ? "PUBLIC" : null;
   if (!visibility) throw new HttpError(400, "相册可见范围无效。");
-  const [result] = await getDatabase().execute("UPDATE albums SET title = ?, description = ?, visibility = ?, updated_at = UTC_TIMESTAMP(3) WHERE id = ?", [title, description, visibility, id]);
+  const [result] = await getDatabase().query("UPDATE albums SET title = ?, description = ?, visibility = ?, updated_at = UTC_TIMESTAMP(3) WHERE id = ?", [title, description, visibility, id]);
   if ((result as { affectedRows: number }).affectedRows === 0) throw new HttpError(404, "相册不存在。");
   return (await getAlbum(id, true))!;
 }
 
 export async function deleteAlbum(id: string): Promise<void> {
-  const [result] = await getDatabase().execute("DELETE FROM albums WHERE id = ?", [id]);
+  const [result] = await getDatabase().query("DELETE FROM albums WHERE id = ?", [id]);
   if ((result as { affectedRows: number }).affectedRows === 0) throw new HttpError(404, "相册不存在。");
 }
 
@@ -73,7 +73,7 @@ export async function createPhoto(input: { albumId: string; storageKey: string; 
   const title = input.title.trim() || "未命名照片";
   if (title.length > 160 || input.description.trim().length > 2000 || input.location.trim().length > 120) throw new HttpError(400, "照片信息过长，请精简后再试。");
   const id = randomUUID();
-  await getDatabase().execute("INSERT INTO photos (id, album_id, storage_key, title, description, location, width, height) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [id, input.albumId, input.storageKey, title, input.description.trim(), input.location.trim(), input.width, input.height]);
+  await getDatabase().query("INSERT INTO photos (id, album_id, storage_key, title, description, location, width, height) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [id, input.albumId, input.storageKey, title, input.description.trim(), input.location.trim(), input.width, input.height]);
   const album = await getAlbum(input.albumId, true);
   const photo = album?.photos.find(item => item.id === id);
   if (!photo) throw new HttpError(500, "照片保存后无法读取。");
@@ -83,7 +83,7 @@ export async function createPhoto(input: { albumId: string; storageKey: string; 
 export async function deletePhoto(id: string): Promise<{ storageKey: string }> {
   const [rows] = await getDatabase().query<(RowDataPacket & { storage_key: string })[]>("SELECT storage_key FROM photos WHERE id = ? LIMIT 1", [id]);
   if (!rows[0]) throw new HttpError(404, "照片不存在。");
-  await getDatabase().execute("DELETE FROM photos WHERE id = ?", [id]);
+  await getDatabase().query("DELETE FROM photos WHERE id = ?", [id]);
   return { storageKey: rows[0].storage_key };
 }
 
@@ -113,7 +113,7 @@ export async function addComment(photoId: string, author: string, body: string):
   author = author.trim(); body = body.trim();
   if (!author || author.length > 40 || !body || body.length > 1000) throw new HttpError(400, "请填写昵称和不超过 1000 字的评论。");
   const id = randomUUID();
-  try { await getDatabase().execute("INSERT INTO comments (id, photo_id, author_name, body) VALUES (?, ?, ?, ?)", [id, photoId, author, body]); }
+  try { await getDatabase().query("INSERT INTO comments (id, photo_id, author_name, body) VALUES (?, ?, ?, ?)", [id, photoId, author, body]); }
   catch { throw new HttpError(404, "照片不存在或暂时无法评论。"); }
   return { id, author, body, createdAt: new Date().toISOString() };
 }
@@ -141,8 +141,8 @@ export async function getLike(photoId: string): Promise<{ likes: number; liked: 
 export async function setLike(photoId: string, liked: boolean): Promise<{ likes: number; liked: boolean }> {
   const visitor = await visitorHash();
   if (liked) {
-    try { await getDatabase().execute("INSERT IGNORE INTO photo_likes (photo_id, visitor_hash) VALUES (?, ?)", [photoId, visitor]); }
+    try { await getDatabase().query("INSERT IGNORE INTO photo_likes (photo_id, visitor_hash) VALUES (?, ?)", [photoId, visitor]); }
     catch { throw new HttpError(404, "照片不存在。 "); }
-  } else await getDatabase().execute("DELETE FROM photo_likes WHERE photo_id = ? AND visitor_hash = ?", [photoId, visitor]);
+  } else await getDatabase().query("DELETE FROM photo_likes WHERE photo_id = ? AND visitor_hash = ?", [photoId, visitor]);
   return getLike(photoId);
 }
