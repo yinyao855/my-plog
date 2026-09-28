@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import GalleryApp from "@/components/gallery-app";
+import AlbumViewer from "@/components/album-viewer";
 import { getAlbum } from "@/lib/gallery-repository";
 import { getAdminSession } from "@/lib/auth";
 
@@ -10,5 +10,5 @@ export default async function AlbumPage({ params }: { params: Promise<{ id: stri
   const session = await getAdminSession();
   const album = await getAlbum(id, Boolean(session));
   if (!album) notFound();
-  return <GalleryApp data={{ albums: [album], demo: !process.env.DATABASE_URL }} isAdmin={Boolean(session)} albumView />;
+  return <AlbumViewer album={album} isAdmin={Boolean(session)} />;
 }
