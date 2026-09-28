@@ -109,6 +109,9 @@ importers:
 
   .:
     dependencies:
+      '@next/env':
+        specifier: 16.3.5
+        version: 16.3.5
       mysql2:
         specifier: ^3.24.4
         version: 3.24.4(@types/node@20.19.43)
